@@ -46,3 +46,39 @@ class DeleteFileHandler(tornado.web.RequestHandler):
             data['code'] = 0
             data['msg'] = "delete file success"
         self.write(json.dumps(data))
+
+class DownLoadFileHandler(tornado.web.RequestHandler):
+    def get(self):
+        # print('i download file handler : ', self.request.uri)
+        filename = self.request.uri
+        # Content-Type这里我写的时候是固定的了，也可以根据实际情况传值进来
+        self.set_header("Content-type", "image/png")
+        # 读取的模式需要根据实际情况进行修改
+        with open("."+filename, 'rb') as f:
+            while True:
+                data = f.read(1024)
+                if not data:
+                    break
+                self.write(data)
+        # 记得有finish哦
+        self.finish()
+
+# # 获取图片
+# class GetImage(tornado.web.RequestHandler):
+#     @tornado.web.asynchronous
+#     @tornado.gen.coroutine
+#     def get(self):
+#         # 获得请求的URL
+#         url = self.request.uri
+#         # 图片地址标识
+#         image_path = url.split("/")[2]
+#         # 图片名称
+#         image_name = url.split("/")[3]
+#         rs = FileService()
+#         # data = rs.get_image(image_path,image_name,resp)
+#         # 回掉函数，参数
+#         data = yield tornado.gen.Task(self.get_image,image_path,image_name,resp,rs)
+#         self.write(data)
+#         # 设置读取的格式
+#         self.set_header("Content-type", "image/png")
+#         self.finish()
