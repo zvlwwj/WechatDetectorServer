@@ -17,6 +17,7 @@ base_url ="http://172.16.4.32:80"
 url = [
     # ============主页推荐===========
     (r'/statics/.*/.*/.*', DownLoadFileHandler),
+    (r'/Android/apk/.*/.*', DownLoadFileHandler),
     (r'/upload', UploadFileHandler),
     (r'/wx', WxHandler)
 ]

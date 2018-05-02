@@ -51,8 +51,11 @@ class DownLoadFileHandler(tornado.web.RequestHandler):
     def get(self):
         # print('i download file handler : ', self.request.uri)
         filename = self.request.uri
-        # Content-Type这里我写的时候是固定的了，也可以根据实际情况传值进来
-        self.set_header("Content-type", "image/png")
+        if filename.endswith(".png"):
+            self.set_header("Content-type", "image/png")
+        else:
+            self.set_header('Content-Type', 'application/octet-stream')
+            self.set_header('Content-Disposition', 'attachment; filename=' + filename)
         # 读取的模式需要根据实际情况进行修改
         with open("."+filename, 'rb') as f:
             while True:
