@@ -19,5 +19,6 @@ url = [
     (r'/statics/.*/.*/.*', DownLoadFileHandler),
     (r'/Android/apk/.*/.*', DownLoadFileHandler),
     (r'/upload', UploadFileHandler),
-    (r'/wx', WxHandler)
+    (r'/wx', WxHandler),
+    (r'', BindHandler)
 ]
