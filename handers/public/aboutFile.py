@@ -10,11 +10,12 @@ from astropy.io.fits import file
 import url
 class UploadFileHandler(tornado.web.RequestHandler):
     def post(self):
+        data = {}
         try:
-            data = {}
             wechat_user = self.get_argument("wechat_user")
             date = self.get_argument("date")
-            relative_url = "statics/"+wechat_user+"/"+date+"/"
+            device_id = self.get_argument("device_id")
+            relative_url = "statics/"+wechat_user+"_"+device_id+"/"+date+"/"
             files = self.request.files
             file = files.get("file")
             for img in file:

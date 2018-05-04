@@ -9,11 +9,9 @@ import os
 from gevent import thread
 
 from handers.public import receive, reply
-from url import base_url
-
 
 versionName = "1.0"
-
+base_url = "http://172.16.4.32:80"
 
 class WxHandler(tornado.web.RequestHandler):
     def get(self):
@@ -38,14 +36,15 @@ class WxHandler(tornado.web.RequestHandler):
 
     def post(self):
         try:
-
             webData = self.request.body
             # 后台打日志
             recMsg = receive.parse_xml(webData)
             if isinstance(recMsg, receive.Msg) and recMsg.MsgType == 'text':
                 if recMsg.Content == '#SCAPK':
-                    self.write("")
-                    thread.start_new_thread(build_apk, (recMsg, self))
+                    # self.write("http://35.229.220.81:80/app-release.apk")
+                    self.write("http://172.16.4.32:80/app-release.apk")
+                    # thread.start_new_thread(build_apk, (recMsg, self))
+
             else:
                 print("暂且不处理")
                 self.write("success")
