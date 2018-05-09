@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<head>
+    <script src="//code.jquery.com/jquery-1.12.1.min.js"></script>
+    <script src="{{static_url("js/script.js")}}"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>picture</title>
+    <style type='text/css'>
+            *{margin:0;padding:0;}  /* *通配符选择器 为所有的标签 清除默认外边距*/
+            body{
+                background:#434343;
+            }
+            #wrap{
+                width:1000px;  /*宽度*/
+                height:auto; /*高度*/
+                background:#434343; /*背景颜色*/
+                margin:0 auto;  /*利用margin居中*/
+                overflow:hidden; /*超出部分隐藏掉*/
+            }
+            #wrap ul li{
+                list-style:none; /*清除li小圆点*/
+                float:left;    /*元素向左浮动*/
+                margin:10px;   /*设置元素距离上下左右间距为10*/
+                width:360px;
+                height:540px;
+                box-shadow:0 0 4px #fff; /*盒子阴影 横向位移 纵向位移 影子大小 影子颜色 */
+                border-radius:5px;
+            }
+            #wrap ul li img{
+                display:block; /*使img标签成块级元素展示*/
+                border-radius:5px;
+            }
+            #wrap ul{width:100%;padding:10px}
+        </style>
+
+</head>
+<body>
+    <!--<h2>图片</h2>-->
+    <!--<form method="POST">
+        <p><span>UserName:</span><input type="text" id="username"/></p>
+        <p><span>Password:</span><input type="password" id="password" /></p>
+        <p><input type="BUTTON" value="LOGIN" id="login" /></p>
+    </form>-->
+<div id='wrap'>
+    <ul>
+        {%for img in imgList%}
+        <li><img src="{{img}}" width="360" height="540"/></li>
+        {% end %}
+    </ul>
+</div>
+</body>

@@ -5,7 +5,6 @@ import logging
 import tornado.web
 import json
 import os
-from astropy.io.fits import file
 
 import url
 class UploadFileHandler(tornado.web.RequestHandler):

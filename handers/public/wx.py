@@ -1,14 +1,13 @@
 #!/usr/bin/env Python
 # coding=utf-8
 import hashlib
-
 import time
+from datetime import datetime
+
 import tornado.web
 import os
-
-from gevent import thread
-
-from handers.public import receive, reply
+from handers.public import receive, reply, tool
+from handers.public import db
 
 versionName = "1.0"
 base_url = "http://172.16.4.32:80"
@@ -21,7 +20,7 @@ class WxHandler(tornado.web.RequestHandler):
             timestamp =self.get_argument("timestamp")
             nonce =self.get_argument("nonce")
             echostr = self.get_argument("echostr")
-            token  = "zoujingyi1992"
+            token  = "zoujingyi2018"
             list = [token, timestamp, nonce]
             list.sort()
             sha1 = hashlib.sha1()
@@ -41,16 +40,62 @@ class WxHandler(tornado.web.RequestHandler):
             recMsg = receive.parse_xml(webData)
             if isinstance(recMsg, receive.Msg) and recMsg.MsgType == 'text':
                 if recMsg.Content == '#SCAPK':
-                    # self.write("http://35.229.220.81:80/app-release.apk")
-                    self.write("http://172.16.4.32:80/app-release.apk")
-                    # thread.start_new_thread(build_apk, (recMsg, self))
-
+                    toUser = recMsg.FromUserName
+                    fromUser = recMsg.ToUserName
+                    content = "http://www.zoujingyi.cn/app-release.apk"
+                    replyMsg = reply.TextMsg(toUser, fromUser, content)
+                    self.write(replyMsg.send())
+                elif recMsg.Content == '#OPENID':
+                    toUser = recMsg.FromUserName
+                    fromUser = recMsg.ToUserName
+                    content = toUser
+                    replyMsg = reply.TextMsg(toUser, fromUser, content)
+                    self.write(replyMsg.send())
+                elif recMsg.Content == '#DEVICE':
+                    toUser = recMsg.FromUserName
+                    fromUser = recMsg.ToUserName
+                    content = ""
+                    deviceIds = db.select_user(toUser)[2]
+                    if deviceIds is not None:
+                        for id in deviceIds.split(","):
+                            deviceName = db.select_deviceName(deviceId=id)[1]
+                            content = content+deviceName+" "+id+"\n"
+                    replyMsg = reply.TextMsg(toUser, fromUser, content)
+                    self.write(replyMsg.send())
+                elif tool.fullmatch(r"(\d{4}-\d{1,2}-\d{1,2}\|\d+)", recMsg.Content):
+                    # 日期|deviceId
+                    handleDate(recMsg, self)
             else:
                 print("暂且不处理")
                 self.write("success")
         except Exception as e:
-            self.write(e)
+            print(e)
 
+def handleDate(recMsg, handler):
+    toUser = recMsg.FromUserName
+    fromUser = recMsg.ToUserName
+
+    strDate = recMsg.Content.split("|")[0]
+    deviceId = recMsg.Content.split("|")[1]
+    dateExpect = datetime.strptime(strDate, '%Y-%m-%d')
+    strNow = datetime.now().strftime('%Y-%m-%d')
+    dateNow = datetime.strptime(strNow, '%Y-%m-%d')
+    delta = dateNow - dateExpect
+    if delta.days > 30 or delta.days < 0:
+        content = "只能查询7天内的数据"
+    else:
+        # 查询该用户，设备下指定日期的图片
+        pathDir = "statics/"+recMsg.FromUserName+"_"+deviceId+"/"+strDate
+        if os.path.isdir(pathDir):
+            userName = recMsg.FromUserName
+            date = strDate
+            print(userName+deviceId+date+"12345678987654321")
+            token = hashlib.md5(userName + deviceId + date + "12345678987654321").hexdigest()
+            content = "http://www.zoujingyi.cn/?userName="+userName+"&device="+deviceId+"&date="+date+"&token="+token
+        else:
+            content = "当天数据不存在"
+    replyMsg = reply.TextMsg(toUser, fromUser, content)
+    handler.write(replyMsg.send())
 
 def build_apk(recMsg,handler):
     toUser = recMsg.FromUserName
