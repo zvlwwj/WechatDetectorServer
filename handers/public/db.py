@@ -30,3 +30,8 @@ def select_deviceName(deviceId):
     sql = "select * from device where deviceId = "+deviceId
     cur.execute(sql)
     return cur.fetchone()
+
+def update_balance(user_name,balance):
+    sql = "update user set balance = %s where user_name = %s"
+    cur.execute(sql, (balance, user_name))
+    conn.commit()

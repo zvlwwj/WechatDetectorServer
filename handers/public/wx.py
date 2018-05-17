@@ -8,9 +8,15 @@ import tornado.web
 import os
 from handers.public import receive, reply, tool
 from handers.public import db
-
+import qrcode
+import media
+import basic
+import json as json
+import material
 versionName = "1.0"
 base_url = "http://172.16.4.32:80"
+price = 5
+
 
 class WxHandler(tornado.web.RequestHandler):
     def get(self):
@@ -43,13 +49,37 @@ class WxHandler(tornado.web.RequestHandler):
                     toUser = recMsg.FromUserName
                     fromUser = recMsg.ToUserName
                     content = "http://www.zoujingyi.cn/app-release.apk"
-                    replyMsg = reply.TextMsg(toUser, fromUser, content)
+
+                    qrcodePath = "imgs/release_apk_qrcode.png"
+                    img = qrcode.make(content)
+                    img.save(qrcodePath)
+                    myMedia = media.Media()
+                    accessToken = basic.Basic().get_access_token()
+                    path = "/home/zou/WechatDetector/" + qrcodePath
+                    mediaType = "image"
+                    back = myMedia.uplaod(accessToken, path, mediaType)
+                    back_json = json.loads(back)
+                    media_id = back_json["media_id"]
+                    replyMsg = reply.ImageMsg(toUser, fromUser, media_id)
                     self.write(replyMsg.send())
+
                 elif recMsg.Content == '#OPENID':
                     toUser = recMsg.FromUserName
                     fromUser = recMsg.ToUserName
                     content = toUser
-                    replyMsg = reply.TextMsg(toUser, fromUser, content)
+
+                    qrcodePath = "imgs/"+toUser+"_qrcode.png"
+                    img = qrcode.make(content)
+                    img.save(qrcodePath)
+
+                    myMedia = media.Media()
+                    accessToken = basic.Basic().get_access_token()
+                    path = "/home/zou/WechatDetector/"+qrcodePath
+                    mediaType = "image"
+                    back = myMedia.uplaod(accessToken, path, mediaType)
+                    back_json = json.loads(back)
+                    media_id = back_json["media_id"]
+                    replyMsg = reply.ImageMsg(toUser, fromUser, media_id)
                     self.write(replyMsg.send())
                 elif recMsg.Content == '#DEVICE':
                     toUser = recMsg.FromUserName
@@ -64,14 +94,24 @@ class WxHandler(tornado.web.RequestHandler):
                     self.write(replyMsg.send())
                 elif tool.fullmatch(r"(\d{4}-\d{1,2}-\d{1,2}\|\d+)", recMsg.Content):
                     # 日期|deviceId
-                    handleDate(recMsg, self)
+                    toUser = recMsg.FromUserName
+                    fromUser = recMsg.ToUserName
+                    balance = int(db.select_user(user_name=toUser)[1])
+                    if balance < price:
+                        content = "余额不足，请充值，您的余额为"+str(balance)+"元"
+                        replyMsg = reply.TextMsg(toUser, fromUser, content)
+                        self.write(replyMsg.send())
+                    else:
+                        handleDate(recMsg=recMsg, handler=self, balance=balance)
             else:
                 print("暂且不处理")
                 self.write("success")
         except Exception as e:
             print(e)
 
-def handleDate(recMsg, handler):
+
+
+def handleDate(recMsg, handler, balance):
     toUser = recMsg.FromUserName
     fromUser = recMsg.ToUserName
 
@@ -85,13 +125,14 @@ def handleDate(recMsg, handler):
         content = "只能查询7天内的数据"
     else:
         # 查询该用户，设备下指定日期的图片
-        pathDir = "statics/"+recMsg.FromUserName+"_"+deviceId+"/"+strDate
+        pathDir = "imgs/"+recMsg.FromUserName+"_"+deviceId+"/"+strDate
         if os.path.isdir(pathDir):
             userName = recMsg.FromUserName
             date = strDate
-            print(userName+deviceId+date+"12345678987654321")
             token = hashlib.md5(userName + deviceId + date + "12345678987654321").hexdigest()
-            content = "http://www.zoujingyi.cn/?userName="+userName+"&device="+deviceId+"&date="+date+"&token="+token
+            new_balance = balance - price
+            db.update_balance(user_name=userName, balance=new_balance)
+            content = "http://www.zoujingyi.cn/img?userName="+userName+"&device="+deviceId+"&date="+date+"&token="+token
         else:
             content = "当天数据不存在"
     replyMsg = reply.TextMsg(toUser, fromUser, content)

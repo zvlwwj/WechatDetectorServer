@@ -14,7 +14,7 @@ class UploadFileHandler(tornado.web.RequestHandler):
             wechat_user = self.get_argument("wechat_user")
             date = self.get_argument("date")
             device_id = self.get_argument("device_id")
-            relative_url = "statics/"+wechat_user+"_"+device_id+"/"+date+"/"
+            relative_url = "imgs/"+wechat_user+"_"+device_id+"/"+date+"/"
             files = self.request.files
             file = files.get("file")
             for img in file:
@@ -57,7 +57,7 @@ class DownLoadFileHandler(tornado.web.RequestHandler):
             self.set_header('Content-Type', 'application/octet-stream')
             self.set_header('Content-Disposition', 'attachment; filename=' + filename)
         # 读取的模式需要根据实际情况进行修改
-        with open("."+filename, 'rb') as f:
+        with open("."+filename.replace('/download', ''), 'rb') as f:
             while True:
                 data = f.read(1024)
                 if not data:

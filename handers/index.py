@@ -3,7 +3,7 @@
 import os
 import tornado.web
 import hashlib
-class IndexHandler(tornado.web.RequestHandler):
+class ImgHandler(tornado.web.RequestHandler):
     def get(self):
         userName = self.get_argument("userName")
         device = self.get_argument("device")
@@ -11,7 +11,7 @@ class IndexHandler(tornado.web.RequestHandler):
         get_token = self.get_argument("token")
         token = hashlib.md5(userName + device + date + "12345678987654321").hexdigest()
         if get_token == token:
-            pathDir = "statics/"+userName+"_"+device+"/"+date
+            pathDir = "imgs/"+userName+"_"+device+"/"+date
             print("pathDir:"+pathDir)
             for root, dirs, files in os.walk(pathDir):
                 for i in range(len(files)):
